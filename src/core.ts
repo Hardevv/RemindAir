@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import type { Data, Reminder } from "./types";
 import { cleanReminderContent, getData, getObsidianAdvancedUriBlockLink, saveData } from "./utils";
-import { REMINDER_ID_KEY_REGEXP, REMINDER_KEY, REMINDER_REGEXP } from "./consts";
+import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_ID_KEY_REGEXP, REMINDER_KEY, REMINDER_REGEXP } from "./consts";
 import { logger } from "./logger";
 
 const handleNewReminders = (cachedReminders: Reminder<string>[], remindersFromFiles: Reminder<Date>[], data: Data) => {
@@ -102,26 +102,25 @@ export const watchLogic = () => {
   handleEdit(cachedReminders, remindersFromFiles, data);
 };
 
-const sentObsidianWebhook = async (reminder: Reminder<string>, vaultName: string) => {
-  const reminderId = reminder.content?.split("^r-")[1];
-  const obsidianLink = getObsidianAdvancedUriBlockLink(vaultName, reminder.filePath, `^r-${reminderId}`);
+const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string) => {
+  const reminderId = reminder.content?.split(REMINDER_ID_KEY)[1];
+  const obsidianLink = getObsidianAdvancedUriBlockLink(vaultName, reminder.filePath, `${REMINDER_ID_KEY}${reminderId}`);
 
   try {
-    await fetch(process.env.DISCORD_WEBHOOK_URL || "", {
+    const response = await fetch(process.env.DISCORD_WEBHOOK_URL || "", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        content: `🔔 **Reminder:** ${cleanReminderContent(reminder.content)}`,
         embeds: [
           {
-            title: "Open in obsidian",
-            description: `https://hardevv.github.io/obsidian-notifier?deeplink=${encodeURIComponent(obsidianLink)}`, // TODO: use .env
-            color: 0x7c3aed,
+            title: `🔔 **Reminder:** ${cleanReminderContent(reminder.content)}`,
+            description: `### [🔗 Open in obsidian](${REDIRECTION_PAGE_URL}?deeplink=${encodeURIComponent(obsidianLink)})`,
+            color: 0x7e48e7,
           },
         ],
       }),
     });
-    logger.info(`Sent webhook for reminder with id ${reminder.id}`);
+    if (response.ok) logger.info(`Sent webhook for reminder with id ${reminder.id}`);
   } catch (err) {
     logger.error(`Failed to send webhook for reminder with id ${reminder.id}: ${(err as Error).message}`);
   }
@@ -139,7 +138,7 @@ export const checkPastRemindersAndSend = async (vaultName: string) => {
     if (diff >= 0 && !reminder.sent && reminder.id && !reminder.deleted) {
       const index = data.reminders.findIndex((r) => r.id === reminder.id);
       data.reminders[index].sent = true;
-      await sentObsidianWebhook(reminder, vaultName);
+      await sentDiscordWebhook(reminder, vaultName);
       saveData(data);
     }
   }
