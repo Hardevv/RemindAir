@@ -4,5 +4,5 @@ export const MAX_PAST_MS = 5 * 60 * 1000; // 5 minutes
 export const REMINDER_KEY = "reminder";
 export const REMINDER_ID_KEY = "^r-";
 export const REMINDER_ID_KEY_REGEXP = new RegExp(/\^r-\d+/);
-export const REMINDER_REGEXP = new RegExp(`\\[${REMINDER_KEY}::\\s*(.+?)\\]`);
+export const REMINDER_REGEXP = /🔔\s+(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})\s+\^r-(\d+)/;
 export const REDIRECTION_PAGE_URL = "https://hardevv.github.io/obsidian-notifier";

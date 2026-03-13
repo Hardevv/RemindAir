@@ -1,7 +1,7 @@
 import { execSync } from "child_process";
 import type { Data, Reminder } from "./types";
 import { cleanReminderContent, getData, getObsidianAdvancedUriBlockLink, saveData } from "./utils";
-import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_ID_KEY_REGEXP, REMINDER_KEY, REMINDER_REGEXP } from "./consts";
+import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_REGEXP } from "./consts";
 import { logger } from "./logger";
 
 const handleNewReminders = (cachedReminders: Reminder<string>[], remindersFromFiles: Reminder<Date>[], data: Data) => {
@@ -57,10 +57,11 @@ const handleEdit = (cachedReminders: Reminder<string>[], remindersFromFiles: Rem
     if (editedReminder?.id === cachedReminder?.id) {
       const index = cachedReminders.findIndex((r: Reminder<string>) => r?.id === editedReminder?.id);
       if (!validateDateReminder(editedReminder)) return;
+      const hasDateChanged = editedReminder.dateTime.toISOString() !== cachedReminder.dateTime;
       data.reminders[index] = {
         ...editedReminder,
         dateTime: editedReminder.dateTime.toISOString(),
-        sent: cachedReminder.sent,
+        sent: hasDateChanged ? false : cachedReminder.sent,
         deleted: cachedReminder.deleted,
       };
       logger.info(`Reminder with id ${editedReminder.id} was edited, updated cache`);
@@ -74,12 +75,13 @@ const handleEdit = (cachedReminders: Reminder<string>[], remindersFromFiles: Rem
 
 /** fetches reminders form Obsidian vault via new Obsidian CLI */
 const getObsidianReminders = (): Reminder[] => {
-  const searchResult = execSync(`obsidian search:context query="/\\[${REMINDER_KEY}::/"`, { encoding: "utf-8" }).trim();
+  const searchResult = execSync(`obsidian search:context query="/🔔/"`, { encoding: "utf-8" }).trim();
   const reminderLines = searchResult.split("\n");
 
   return reminderLines.map((line) => {
-    const reminderTime = line.match(REMINDER_REGEXP)?.[1];
-    const reminderId = line.match(REMINDER_ID_KEY_REGEXP)?.[0];
+    const reminderMatch = line.match(REMINDER_REGEXP);
+    const reminderTime = reminderMatch?.[1];
+    const reminderId = reminderMatch?.[2] ? `${REMINDER_ID_KEY}${reminderMatch[2]}` : undefined;
 
     return {
       id: reminderId || null,
