@@ -1,5 +1,5 @@
 import { writeFileSync, readFileSync } from "fs";
-import { Data } from "./types";
+import { Data, Reminder } from "./types";
 import { logger } from "./logger";
 import { REMINDER_KEY } from "./consts";
 
@@ -27,3 +27,19 @@ export const cleanReminderContent = (content: string) =>
 
 export const getObsidianAdvancedUriBlockLink = (vaultName: string, filePath: string, blockId: string) =>
   `obsidian://open?vault=${vaultName}&file=${filePath}#^${blockId}`;
+
+export const validateDateReminder = (reminder: any): reminder is Reminder<Date> => {
+  try {
+    return !!(reminder.id && reminder.filePath && reminder.dateTime && reminder.dateTime.toISOString());
+  } catch {
+    return false;
+  }
+};
+
+export const validateStringReminder = (reminder: any): reminder is Reminder<String> => {
+  try {
+    return !!(reminder.id && reminder.filePath && reminder.dateTime && typeof reminder.dateTime === "string");
+  } catch {
+    return false;
+  }
+};

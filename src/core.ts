@@ -1,6 +1,6 @@
 import { execSync } from "child_process";
 import type { Data, Reminder } from "./types";
-import { cleanReminderContent, getData, getObsidianAdvancedUriBlockLink, saveData } from "./utils";
+import { cleanReminderContent, getData, getObsidianAdvancedUriBlockLink, saveData, validateDateReminder, validateStringReminder } from "./utils";
 import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_REGEXP } from "./consts";
 import { logger } from "./logger";
 
@@ -131,6 +131,7 @@ const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string)
 export const checkPastRemindersAndSend = async (vaultName: string) => {
   const now = new Date();
   const data = getData();
+
   for (const reminder of data.reminders) {
     if (!validateStringReminder(reminder)) {
       logger.error({ reminder }, "Invalid reminder format");
@@ -143,21 +144,5 @@ export const checkPastRemindersAndSend = async (vaultName: string) => {
       await sentDiscordWebhook(reminder, vaultName);
       saveData(data);
     }
-  }
-};
-
-const validateDateReminder = (reminder: any): reminder is Reminder<Date> => {
-  try {
-    return !!(reminder.id && reminder.filePath && reminder.dateTime && reminder.dateTime.toISOString());
-  } catch {
-    return false;
-  }
-};
-
-const validateStringReminder = (reminder: any): reminder is Reminder<String> => {
-  try {
-    return !!(reminder.id && reminder.filePath && reminder.dateTime && typeof reminder.dateTime === "string");
-  } catch {
-    return false;
   }
 };
