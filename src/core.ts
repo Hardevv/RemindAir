@@ -4,8 +4,8 @@ import { cleanReminderContent, getData, getObsidianAdvancedUriBlockLink, saveDat
 import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_REGEXP } from "./consts";
 import { logger } from "./logger";
 
-const handleNewReminders = (cachedReminders: Reminder<string>[], remindersFromFiles: Reminder<Date>[], data: Data) => {
-  const newReminders = remindersFromFiles
+const handleNewReminders = (cachedReminders: Reminder<string>[], remindersFromObsidian: Reminder<Date>[], data: Data) => {
+  const newReminders = remindersFromObsidian
     .map((newReminder) => {
       if (!newReminder.id) return null;
 
@@ -27,11 +27,11 @@ const handleNewReminders = (cachedReminders: Reminder<string>[], remindersFromFi
 };
 
 /** Compares reminder ids from obsidian to cached ones in `data.json` if exist in `json` but not in obsidian it means reminder was deleted */
-const handleDelete = (cachedReminders: Reminder<string>[], remindersFromFiles: Reminder<Date>[], data: Data) => {
+const handleDelete = (cachedReminders: Reminder<string>[], remindersFromObsidian: Reminder<Date>[], data: Data) => {
   const cachedReminderIds = cachedReminders.map((r: Reminder<string>) => r?.id);
   const deletedReminders = cachedReminderIds
     .map((id) => {
-      if (remindersFromFiles.find((r) => r?.id === id)) return null;
+      if (remindersFromObsidian.find((r) => r?.id === id)) return null;
       return id;
     })
     .filter(Boolean);
@@ -46,9 +46,9 @@ const handleDelete = (cachedReminders: Reminder<string>[], remindersFromFiles: R
   }
 };
 
-const handleEdit = (cachedReminders: Reminder<string>[], remindersFromFiles: Reminder<Date>[], data: Data) => {
+const handleEdit = (cachedReminders: Reminder<string>[], remindersFromObsidian: Reminder<Date>[], data: Data) => {
   cachedReminders.forEach((cachedReminder) => {
-    const editedReminder = remindersFromFiles.find(
+    const editedReminder = remindersFromObsidian.find(
       (r) =>
         r.id === cachedReminder?.id &&
         (r.filePath !== cachedReminder.filePath || r.content !== cachedReminder.content || r.dateTime.toISOString() !== cachedReminder.dateTime),
@@ -95,13 +95,13 @@ const getObsidianReminders = (): Reminder[] => {
 };
 
 export const watchLogic = () => {
-  const remindersFromFiles = getObsidianReminders();
+  const remindersFromObsidian = getObsidianReminders();
   const data = getData();
   const cachedReminders = data.reminders || [];
 
-  handleNewReminders(cachedReminders, remindersFromFiles, data);
-  handleDelete(cachedReminders, remindersFromFiles, data);
-  handleEdit(cachedReminders, remindersFromFiles, data);
+  handleNewReminders(cachedReminders, remindersFromObsidian, data);
+  handleDelete(cachedReminders, remindersFromObsidian, data);
+  handleEdit(cachedReminders, remindersFromObsidian, data);
 };
 
 const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string) => {
