@@ -1,33 +1,33 @@
 import { execSync } from "child_process";
 import type { Data, Reminder } from "./types";
 import { cleanReminderContent, getData, getObsidianAdvancedUriBlockLink, saveData, validateDateReminder, validateStringReminder } from "./utils";
-import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_REGEXP } from "./consts";
+import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_KEY, REMINDER_REGEXP } from "./consts";
 import { logger } from "./logger";
 
 const handleNewReminders = (cachedReminders: Reminder<string>[], remindersFromObsidian: Reminder<Date>[], data: Data) => {
-  const newReminders = remindersFromObsidian
-    .map((newReminder) => {
-      if (!newReminder.id) return null;
+  const cachedIds = new Set(cachedReminders.map((r) => r?.id).filter((id): id is string => Boolean(id)));
+  const newReminders: Reminder<string>[] = [];
 
-      const existingReminder = cachedReminders.find((r: Reminder<string>) => r?.id === newReminder.id);
+  for (const reminder of remindersFromObsidian) {
+    if (!reminder.id) continue;
+    if (cachedIds.has(reminder.id)) continue;
+    if (!validateDateReminder(reminder)) continue;
 
-      if (existingReminder) return null;
-
-      if (!validateDateReminder(newReminder)) return;
-
-      return { ...newReminder, dateTime: newReminder.dateTime.toISOString() };
-    })
-    .filter((r): r is Reminder<string> => Boolean(r));
+    newReminders.push({ ...reminder, dateTime: reminder.dateTime.toISOString() });
+  }
 
   logger.info(`Found ${newReminders.length} new reminders`);
 
-  const combinedReminders = [...cachedReminders, ...newReminders];
-  data.reminders = combinedReminders;
+  if (newReminders.length === 0) return;
+
+  data.reminders = [...cachedReminders, ...newReminders];
   saveData(data);
 };
 
 /** Compares reminder ids from obsidian to cached ones in `data.json` if exist in `json` but not in obsidian it means reminder was deleted */
 const handleDelete = (cachedReminders: Reminder<string>[], remindersFromObsidian: Reminder<Date>[], data: Data) => {
+  if (remindersFromObsidian.length === 0) return;
+
   const cachedReminderIds = cachedReminders.map((r: Reminder<string>) => r?.id);
   const deletedReminders = cachedReminderIds
     .map((id) => {
@@ -35,7 +35,7 @@ const handleDelete = (cachedReminders: Reminder<string>[], remindersFromObsidian
       return id;
     })
     .filter(Boolean);
-  if (deletedReminders) {
+  if (deletedReminders.length > 0) {
     deletedReminders.forEach((id) => {
       const index = cachedReminders.findIndex((r: Reminder<string>) => r?.id === id && !r?.deleted);
       if (index === -1) return;
@@ -75,33 +75,46 @@ const handleEdit = (cachedReminders: Reminder<string>[], remindersFromObsidian: 
 
 /** fetches reminders form Obsidian vault via new Obsidian CLI */
 const getObsidianReminders = (): Reminder[] => {
-  const searchResult = execSync(`obsidian search:context query="/🔔/"`, { encoding: "utf-8" }).trim();
+  const searchResult = execSync(`obsidian search:context query="/${REMINDER_KEY}/"`, { encoding: "utf-8" }).trim();
   const reminderLines = searchResult.split("\n");
 
-  return reminderLines.map((line) => {
-    const reminderMatch = line.match(REMINDER_REGEXP);
-    const reminderTime = reminderMatch?.[1];
-    const reminderId = reminderMatch?.[2] ? `${REMINDER_ID_KEY}${reminderMatch[2]}` : undefined;
+  return reminderLines
+    .map((line) => {
+      const reminderMatch = line.match(REMINDER_REGEXP);
+      const reminderTime = reminderMatch?.[1];
+      const reminderId = reminderMatch?.[2] ? `${REMINDER_ID_KEY}${reminderMatch[2]}` : undefined;
 
-    return {
-      id: reminderId || null,
-      filePath: line.split(":")[0], // file name is before the first colon
-      content: line,
-      dateTime: reminderTime ? new Date(reminderTime) : new Date(), // Default to current time if parsing fails
-      sent: false,
-      deleted: false,
-    };
-  });
+      if (!reminderTime || !reminderId) return null;
+
+      return {
+        id: reminderId,
+        filePath: line.split(":")[0], // file name is before the first colon
+        content: line,
+        dateTime: new Date(reminderTime),
+        sent: false,
+        deleted: false,
+      };
+    })
+    .filter(Boolean) as Reminder[];
 };
 
+/** It checks md files and update cache of the reminders to handle new, edited, deleted reminders */
 export const watchLogic = () => {
   const remindersFromObsidian = getObsidianReminders();
   const data = getData();
   const cachedReminders = data.reminders || [];
 
+  let t = Date.now();
   handleNewReminders(cachedReminders, remindersFromObsidian, data);
+  logger.info(`handleNewReminders took ${new Date().getTime() - t} ms`);
+
+  t = Date.now();
   handleDelete(cachedReminders, remindersFromObsidian, data);
+  logger.info(`handleDelete took ${new Date().getTime() - t} ms`);
+
+  t = Date.now();
   handleEdit(cachedReminders, remindersFromObsidian, data);
+  logger.info(`handleEdit took ${new Date().getTime() - t} ms`);
 };
 
 const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string) => {
@@ -141,9 +154,13 @@ export const checkPastRemindersAndSend = async (vaultName: string) => {
 
     if (diff >= 0 && !reminder.sent && reminder.id && !reminder.deleted) {
       const index = data.reminders.findIndex((r) => r.id === reminder.id);
-      data.reminders[index].sent = true;
-      await sentDiscordWebhook(reminder, vaultName);
-      saveData(data);
+      try {
+        await sentDiscordWebhook(reminder, vaultName);
+        data.reminders[index].sent = true;
+        saveData(data);
+      } catch {
+        logger.error(`Failed to send reminder with id ${reminder.id}`);
+      }
     }
   }
 };
