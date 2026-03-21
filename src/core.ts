@@ -115,7 +115,7 @@ const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string)
       body: JSON.stringify({
         embeds: [
           {
-            title: `🔔 **Reminder:** ${cleanReminderContent(reminder.content)}`,
+            title: `🔔 Reminder: ${cleanReminderContent(reminder.content)}`,
             description: `### [🔗 Open in obsidian](${REDIRECTION_PAGE_URL}?deeplink=${encodeURIComponent(obsidianLink)})`,
             color: 0x7e48e7,
           },
@@ -135,9 +135,10 @@ export const checkPastRemindersAndSend = async (vaultName: string) => {
   for (const reminder of data.reminders) {
     if (!validateStringReminder(reminder)) {
       logger.error({ reminder }, "Invalid reminder format");
-      return;
+      continue;
     }
     const diff = now.getTime() - new Date(reminder.dateTime).getTime();
+
     if (diff >= 0 && !reminder.sent && reminder.id && !reminder.deleted) {
       const index = data.reminders.findIndex((r) => r.id === reminder.id);
       data.reminders[index].sent = true;

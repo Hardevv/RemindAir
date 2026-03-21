@@ -1,9 +1,8 @@
 import { writeFileSync, readFileSync } from "fs";
 import { Data, Reminder } from "./types";
 import { logger } from "./logger";
-import { REMINDER_KEY } from "./consts";
+import { DATA_PATH, REMINDER_KEY } from "./consts";
 
-const DATA_PATH = `${process.cwd()}/data.json`;
 const INIT_DATA: Data = { reminders: [] };
 
 export const initializeDataFile = () => {
@@ -18,12 +17,21 @@ export const initializeDataFile = () => {
 export const getData = (): Data => JSON.parse(readFileSync(DATA_PATH, "utf-8"));
 export const saveData = (data: Data) => writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
 
-export const cleanReminderContent = (content: string) =>
-  content
-    .split(/:\d+:\s*/)[1]
-    ?.split(`[${REMINDER_KEY}::`)[0]
-    ?.replace(/^-\s*\[.\]\s*/, "")
-    ?.trim();
+/** Removes path part, list & checkbox indicators, reminder part at the end */
+export const cleanReminderContent = (content: string) => {
+  const firstColonIndex = content.indexOf(":");
+  const secondColonIndex = content.indexOf(":", firstColonIndex + 1);
+  let cleanedContent = content.slice(secondColonIndex + 1).trimStart();
+
+  if (cleanedContent.startsWith("- [") || cleanedContent.startsWith("* ["))
+    cleanedContent = cleanedContent.slice(5); // remove any checkbox "- [ ] ", * [ ]
+  else if (cleanedContent.startsWith("- ") || cleanedContent.startsWith("* ")) cleanedContent = cleanedContent.slice(2); // remove list indicator - or *
+
+  const indexOfReminderKey = cleanedContent.indexOf(REMINDER_KEY);
+  if (indexOfReminderKey !== -1) cleanedContent = cleanedContent.slice(0, indexOfReminderKey).trimEnd(); // remove reminder key and anything after it
+
+  return cleanedContent;
+};
 
 export const getObsidianAdvancedUriBlockLink = (vaultName: string, filePath: string, blockId: string) =>
   `obsidian://open?vault=${vaultName}&file=${filePath}#^${blockId}`;
