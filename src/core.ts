@@ -62,7 +62,7 @@ const handleEdit = (cachedReminders: Reminder<string>[], remindersFromObsidian: 
         ...editedReminder,
         dateTime: editedReminder.dateTime.toISOString(),
         sent: hasDateChanged ? false : cachedReminder.sent,
-        deleted: cachedReminder.deleted,
+        deleted: false,
       };
       logger.info(`Reminder with id ${editedReminder.id} was edited, updated cache`);
     }
