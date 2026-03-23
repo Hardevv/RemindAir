@@ -103,18 +103,23 @@ export const watchLogic = () => {
   const remindersFromObsidian = getObsidianReminders();
   const data = getData();
   const cachedReminders = data.reminders || [];
+  const times = [];
 
   let t = Date.now();
   handleNewReminders(cachedReminders, remindersFromObsidian, data);
-  logger.info(`handleNewReminders took ${new Date().getTime() - t} ms`);
+  times.push(`handle new reminders - ${new Date().getTime() - t} ms`);
 
   t = Date.now();
   handleDelete(cachedReminders, remindersFromObsidian, data);
-  logger.info(`handleDelete took ${new Date().getTime() - t} ms`);
+  times.push(`handle deleted reminders - ${new Date().getTime() - t} ms`);
 
   t = Date.now();
   handleEdit(cachedReminders, remindersFromObsidian, data);
-  logger.info(`handleEdit took ${new Date().getTime() - t} ms`);
+  times.push(`handle edited reminders - ${new Date().getTime() - t} ms`);
+
+  logger.info(`Performance of functions: 
+  ${times.join("\n  ")}
+  `);
 };
 
 const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string) => {
@@ -129,7 +134,8 @@ const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string)
         embeds: [
           {
             title: `🔔 Reminder: ${cleanReminderContent(reminder.content)}`,
-            description: `### [🔗 Open in obsidian](${REDIRECTION_PAGE_URL}?deeplink=${encodeURIComponent(obsidianLink)})`,
+            url: `${REDIRECTION_PAGE_URL}?deeplink=${encodeURIComponent(obsidianLink)}`,
+            footer: { text: `${reminder.filePath} | Click the link above to open Obsidian` },
             color: 0x7e48e7,
           },
         ],
