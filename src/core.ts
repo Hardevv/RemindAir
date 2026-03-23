@@ -47,16 +47,20 @@ const handleDelete = (cachedReminders: Reminder<string>[], remindersFromObsidian
 };
 
 const handleEdit = (cachedReminders: Reminder<string>[], remindersFromObsidian: Reminder<Date>[], data: Data) => {
+  let hasEdits = false;
+
   cachedReminders.forEach((cachedReminder) => {
     const editedReminder = remindersFromObsidian.find(
-      (r) =>
-        r.id === cachedReminder?.id &&
-        (r.filePath !== cachedReminder.filePath || r.content !== cachedReminder.content || r.dateTime.toISOString() !== cachedReminder.dateTime),
+      (rfo) =>
+        rfo.id === cachedReminder?.id &&
+        (rfo.filePath !== cachedReminder.filePath ||
+          rfo.content !== cachedReminder.content ||
+          rfo.dateTime.toISOString() !== cachedReminder.dateTime),
     );
 
     if (editedReminder?.id === cachedReminder?.id) {
       const index = cachedReminders.findIndex((r: Reminder<string>) => r?.id === editedReminder?.id);
-      if (!validateDateReminder(editedReminder)) return;
+      if (!validateDateReminder(editedReminder) || index === -1) return;
       const hasDateChanged = editedReminder.dateTime.toISOString() !== cachedReminder.dateTime;
       data.reminders[index] = {
         ...editedReminder,
@@ -64,13 +68,14 @@ const handleEdit = (cachedReminders: Reminder<string>[], remindersFromObsidian: 
         sent: hasDateChanged ? false : cachedReminder.sent,
         deleted: false,
       };
+      hasEdits = true;
       logger.info(`Reminder with id ${editedReminder.id} was edited, updated cache`);
     }
 
     return cachedReminder;
   });
 
-  saveData(data);
+  if (hasEdits) saveData(data);
 };
 
 /** fetches reminders form Obsidian vault via new Obsidian CLI */
