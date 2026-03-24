@@ -15,8 +15,7 @@ watchLogic(); // Run once on start
 startApi(API_PORT);
 
 setInterval(async () => {
-  // have to be commented out until #20 is done
-  // await checkPastRemindersAndSend();
+  await checkPastRemindersAndSend();
 }, INTERVAL_DELAY);
 
 let debounceTimer: ReturnType<typeof setTimeout>;

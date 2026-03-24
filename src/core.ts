@@ -142,9 +142,9 @@ export const watchLogic = () => {
   `);
 };
 
-const sentDiscordWebhook = async (reminder: Reminder<string>) => {
-  const reminderId = reminder.content?.split(REMINDER_ID_KEY)[1];
-  const obsidianLink = getObsidianAdvancedUriBlockLink(reminder.vaultName, reminder.filePath, `${REMINDER_ID_KEY}${reminderId}`);
+const sentDiscordWebhook = async ({ vaultName, filePath, id, content }: Reminder<string>) => {
+  if (!id) throw new Error("Reminder id is missing");
+  const obsidianLink = getObsidianAdvancedUriBlockLink(vaultName, filePath, id);
 
   try {
     const response = await fetch(process.env.DISCORD_WEBHOOK_URL || "", {
@@ -153,17 +153,17 @@ const sentDiscordWebhook = async (reminder: Reminder<string>) => {
       body: JSON.stringify({
         embeds: [
           {
-            title: `🔔 Reminder: ${cleanReminderContent(reminder.content)}`,
+            title: `🔔 Reminder: ${cleanReminderContent(content)}`,
             url: `${REDIRECTION_PAGE_URL}?deeplink=${encodeURIComponent(obsidianLink)}`,
-            footer: { text: `${reminder.filePath} | Click the link above to open Obsidian` },
+            footer: { text: `${filePath} | Click the link above to open Obsidian` },
             color: 0x7e48e7,
           },
         ],
       }),
     });
-    if (response.ok) logger.info(`Sent webhook for reminder with id ${reminder.id}`);
+    if (response.ok) logger.info(`Sent webhook for reminder with id ${id}`);
   } catch (err) {
-    logger.error(`Failed to send webhook for reminder with id ${reminder.id}: ${(err as Error).message}`);
+    logger.error(`Failed to send webhook for reminder with id ${id}: ${(err as Error).message}`);
   }
 };
 
