@@ -13,5 +13,7 @@ export const WIKILINK_REGEXP = /\[\[([^|\]]+)(?:\|([^\]]+))?\]\]/g; // [[Page|Al
 export const CHECKBOX_REGEX = /(?:[-*]\s*\[[^\]]\]\s*)?/;
 
 export const DATA_PATH = `${process.cwd()}/data.json`;
+export const VAULT_NAMES = process.env.VAULTS ? process.env.VAULTS.split(",").map((v) => v.trim()) : [];
+if (VAULT_NAMES.length === 0) throw new Error("VAULTS environment variable is not set or empty");
 
 export const REDIRECTION_PAGE_URL = "https://hardevv.github.io/obsidian-notifier";

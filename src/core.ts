@@ -3,6 +3,7 @@ import type { Data, Reminder } from "./types";
 import { cleanReminderContent, getData, getObsidianAdvancedUriBlockLink, saveData, validateDateReminder, validateStringReminder } from "./utils";
 import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_KEY, REMINDER_REGEXP } from "./consts";
 import { logger } from "./logger";
+import { VAULT_NAMES } from "./consts";
 
 const handleNewReminders = (cachedReminders: Reminder<string>[], remindersFromObsidian: Reminder<Date>[], data: Data) => {
   const cachedIds = new Set(cachedReminders.map((r) => r?.id).filter((id): id is string => Boolean(id)));
@@ -78,29 +79,37 @@ const handleEdit = (cachedReminders: Reminder<string>[], remindersFromObsidian: 
   if (hasEdits) saveData(data);
 };
 
-/** fetches reminders form Obsidian vault via new Obsidian CLI */
-const getObsidianReminders = (): Reminder[] => {
-  const searchResult = execSync(`obsidian search:context query="/${REMINDER_KEY}/"`, { encoding: "utf-8" }).trim();
-  const reminderLines = searchResult.split("\n");
+/** fetches reminders form Obsidian vaults via new Obsidian CLI */
+const getObsidianReminders = () => {
+  const vaultReminderLines = VAULT_NAMES.map((vaultName): [string, string[]] => {
+    const searchResult = execSync(`obsidian vault="${vaultName}" search:context query="/${REMINDER_KEY}/"`, { encoding: "utf-8" }).trim();
+    const reminderLines = searchResult.split("\n");
+    return [vaultName, reminderLines];
+  });
 
-  return reminderLines
-    .map((line) => {
-      const reminderMatch = line.match(REMINDER_REGEXP);
-      const reminderTime = reminderMatch?.[1];
-      const reminderId = reminderMatch?.[2] ? `${REMINDER_ID_KEY}${reminderMatch[2]}` : undefined;
+  return vaultReminderLines.reduce((acc, [vaultName, lines]) => {
+    const vaultLines = lines
+      .map((line) => {
+        const reminderMatch = line.match(REMINDER_REGEXP);
+        const reminderTime = reminderMatch?.[1];
+        const reminderId = reminderMatch?.[2] ? `${REMINDER_ID_KEY}${reminderMatch[2]}` : undefined;
 
-      if (!reminderTime || !reminderId) return null;
+        if (!reminderTime || !reminderId) return null;
 
-      return {
-        id: reminderId,
-        filePath: line.split(":")[0], // file name is before the first colon
-        content: line,
-        dateTime: new Date(reminderTime),
-        sent: false,
-        deleted: false,
-      };
-    })
-    .filter(Boolean) as Reminder[];
+        return {
+          vaultName,
+          id: reminderId,
+          filePath: line.split(":")[0], // file name is before the first colon
+          content: line,
+          dateTime: new Date(reminderTime),
+          sent: false,
+          deleted: false,
+        };
+      })
+      .filter(Boolean) as Reminder[];
+
+    return [...acc, ...vaultLines];
+  }, [] as Reminder[]);
 };
 
 /** It checks md files and update cache of the reminders to handle new, edited, deleted reminders */
@@ -127,9 +136,9 @@ export const watchLogic = () => {
   `);
 };
 
-const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string) => {
+const sentDiscordWebhook = async (reminder: Reminder<string>) => {
   const reminderId = reminder.content?.split(REMINDER_ID_KEY)[1];
-  const obsidianLink = getObsidianAdvancedUriBlockLink(vaultName, reminder.filePath, `${REMINDER_ID_KEY}${reminderId}`);
+  const obsidianLink = getObsidianAdvancedUriBlockLink(reminder.vaultName, reminder.filePath, `${REMINDER_ID_KEY}${reminderId}`);
 
   try {
     const response = await fetch(process.env.DISCORD_WEBHOOK_URL || "", {
@@ -152,7 +161,7 @@ const sentDiscordWebhook = async (reminder: Reminder<string>, vaultName: string)
   }
 };
 
-export const checkPastRemindersAndSend = async (vaultName: string) => {
+export const checkPastRemindersAndSend = async () => {
   const now = new Date();
   const data = getData();
 
@@ -166,7 +175,7 @@ export const checkPastRemindersAndSend = async (vaultName: string) => {
     if (diff >= 0 && !reminder.sent && reminder.id && !reminder.deleted) {
       const index = data.reminders.findIndex((r) => r.id === reminder.id);
       try {
-        await sentDiscordWebhook(reminder, vaultName);
+        await sentDiscordWebhook(reminder);
         data.reminders[index].sent = true;
         saveData(data);
       } catch {
