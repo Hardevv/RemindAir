@@ -54,3 +54,7 @@ export const validateStringReminder = (reminder: any): reminder is Reminder<Stri
     return false;
   }
 };
+
+/** Lets you find if reminder exist in cache by ID and VaultName */
+export const reminderExistInCache = (cachedReminder: Reminder<string>, reminderFromObsidian: Reminder<string | Date>) =>
+  cachedReminder.id === reminderFromObsidian.id && cachedReminder.vaultName === reminderFromObsidian.vaultName;
