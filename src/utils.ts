@@ -1,7 +1,7 @@
 import { writeFileSync, readFileSync } from "fs";
 import { Data, Reminder } from "./types";
 import { logger } from "./logger";
-import { DATA_PATH, REMINDER_KEY } from "./consts";
+import { DATA_PATH, MD_LINK_REGEXP, OBSIDIAN_EMBED_REGEXP, REMINDER_KEY, WIKILINK_REGEXP } from "./consts";
 
 const INIT_DATA: Data = { reminders: [] };
 
@@ -26,6 +26,9 @@ export const cleanReminderContent = (content: string) => {
   if (cleanedContent.startsWith("- [") || cleanedContent.startsWith("* ["))
     cleanedContent = cleanedContent.slice(5); // remove any checkbox "- [ ] ", * [ ]
   else if (cleanedContent.startsWith("- ") || cleanedContent.startsWith("* ")) cleanedContent = cleanedContent.slice(2); // remove list indicator - or *
+
+  // remove links & embeds
+  cleanedContent = cleanedContent.replace(OBSIDIAN_EMBED_REGEXP, "[$1]").replace(MD_LINK_REGEXP, "[$1]").replace(WIKILINK_REGEXP, "[$1]").trim();
 
   const indexOfReminderKey = cleanedContent.indexOf(REMINDER_KEY);
   if (indexOfReminderKey !== -1) cleanedContent = cleanedContent.slice(0, indexOfReminderKey).trimEnd(); // remove reminder key and anything after it
