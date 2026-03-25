@@ -95,3 +95,7 @@ export const reminderExistInCache = (
 ) =>
   cachedReminder.id === reminderFromObsidian.id &&
   cachedReminder.vaultName === reminderFromObsidian.vaultName
+
+export const getFeatureFlags = () => ({
+  initPastDatesAsSent: process.env.FEATURE_INIT_PAST_DATES_AS_SENT === 'true',
+})

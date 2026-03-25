@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { watch } from 'fs'
 import { initializeDataFile } from './utils'
-import { checkPastRemindersAndSend, watchLogic } from './core'
+import { checkPastRemindersAndSend, markPastRemindersAsSent, watchLogic } from './core'
 import { DEBOUNCE_DELAY, INTERVAL_DELAY, VAULT_NAMES } from './consts'
 import { startApi } from './api'
 
@@ -12,6 +12,7 @@ if (!ROOT_PATH) throw new Error('ROOT_PATH environment variable is not set')
 
 initializeDataFile()
 watchLogic() // Run once on start
+markPastRemindersAsSent()
 startApi(API_PORT)
 
 setInterval(async () => {
