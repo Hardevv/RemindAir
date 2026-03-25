@@ -14,6 +14,8 @@ import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_KEY, REMINDER_REGEXP } 
 import { logger } from './logger'
 import { VAULT_NAMES } from './consts'
 
+const { initPastDatesAsSent, sentReminderContent, sendObsidianLink } = getFeatureFlags()
+
 const handleNewReminders = (
   cachedReminders: Reminder<string>[],
   remindersFromObsidian: Reminder<Date>[],
@@ -167,6 +169,12 @@ export const watchLogic = () => {
 const sentDiscordWebhook = async ({ vaultName, filePath, id, content }: Reminder<string>) => {
   if (!id) throw new Error('Reminder id is missing')
   const obsidianLink = getObsidianAdvancedUriBlockLink(vaultName, filePath, id)
+  const title = sentReminderContent
+    ? `🔔 Reminder: ${cleanReminderContent(content)}`
+    : '🔔 You have a reminder'
+  const url = sendObsidianLink
+    ? `${REDIRECTION_PAGE_URL}?deeplink=${encodeURIComponent(obsidianLink)}`
+    : undefined
 
   try {
     const response = await fetch(process.env.DISCORD_WEBHOOK_URL || '', {
@@ -175,8 +183,8 @@ const sentDiscordWebhook = async ({ vaultName, filePath, id, content }: Reminder
       body: JSON.stringify({
         embeds: [
           {
-            title: `🔔 Reminder: ${cleanReminderContent(content)}`,
-            url: `${REDIRECTION_PAGE_URL}?deeplink=${encodeURIComponent(obsidianLink)}`,
+            title,
+            url,
             footer: { text: `${filePath} | Click the link above to open Obsidian` },
             color: 0x7e48e7,
           },
@@ -216,7 +224,6 @@ export const checkPastRemindersAndSend = async () => {
 /** Run once at start - find all reminders with past date and `sent: false`, and mark them as sent to avoid mass old reminders sent at start.
  * Can be disabled via `FEATURE_INIT_PAST_DATES_AS_SENT` env variable */
 export const markPastRemindersAsSent = () => {
-  const { initPastDatesAsSent } = getFeatureFlags()
   if (!initPastDatesAsSent) return
   const now = new Date()
   const data = getData()

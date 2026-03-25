@@ -98,4 +98,6 @@ export const reminderExistInCache = (
 
 export const getFeatureFlags = () => ({
   initPastDatesAsSent: process.env.FEATURE_INIT_PAST_DATES_AS_SENT === 'true',
+  sentReminderContent: process.env.FEATURE_SENT_REMINDER_CONTENT === 'true',
+  sendObsidianLink: process.env.FEATURE_SEND_OBSIDIAN_LINK === 'true',
 })
