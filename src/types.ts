@@ -1,16 +1,16 @@
 export interface Reminder<T = Date> {
-  vaultName: string;
-  id: string | null;
+  vaultName: string
+  id: string | null
   /** Relative path to vault (vault is root for that path) */
-  filePath: string;
-  content: string;
-  dateTime: T;
+  filePath: string
+  content: string
+  dateTime: T
   /** Cached value */
-  sent: boolean;
+  sent: boolean
   /** Cached value */
-  deleted: boolean;
+  deleted: boolean
 }
 
 export interface Data {
-  reminders: Reminder<string>[];
+  reminders: Reminder<string>[]
 }

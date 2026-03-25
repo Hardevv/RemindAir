@@ -1,16 +1,16 @@
-import pino from "pino";
+import pino from 'pino'
 
 export const logger = pino({
   transport: {
-    target: "pino-pretty",
+    target: 'pino-pretty',
     options: {
       colorize: true,
-      translateTime: "HH:MM:ss",
-      ignore: "pid,hostname",
+      translateTime: 'HH:MM:ss',
+      ignore: 'pid,hostname',
       singleLine: false,
     },
   },
-});
+})
 
 // logger.info("Start");
 // logger.warn({ userId: 123 }, "Cos podejrzanego");
