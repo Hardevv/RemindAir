@@ -1,15 +1,15 @@
+import path from 'path'
 import { writeFileSync, readFileSync } from 'fs'
-import { Data, Reminder } from './types'
+import type { Data, Reminder } from './types'
 import { logger } from './logger'
 import {
   DATA_PATH,
+  INIT_DATA,
   MD_LINK_REGEXP,
   OBSIDIAN_EMBED_REGEXP,
   REMINDER_KEY,
   WIKILINK_REGEXP,
 } from './consts'
-
-const INIT_DATA: Data = { reminders: [] }
 
 export const initializeDataFile = () => {
   try {
@@ -101,3 +101,14 @@ export const getFeatureFlags = () => ({
   sentReminderContent: process.env.FEATURE_SENT_REMINDER_CONTENT === 'true',
   sendObsidianLink: process.env.FEATURE_SEND_OBSIDIAN_LINK === 'true',
 })
+
+/** build the path for plugin's `data.json` file */
+export const getPluginSettingsPath = (vaultName: string) =>
+  path.join(
+    process.env.ROOT_PATH || '',
+    vaultName,
+    '.obsidian',
+    'plugins',
+    'obsidian-notifier-plugin',
+    'data.json'
+  )

@@ -13,6 +13,7 @@ import {
 import { REDIRECTION_PAGE_URL, REMINDER_ID_KEY, REMINDER_KEY, REMINDER_REGEXP } from './consts'
 import { logger } from './logger'
 import { VAULT_NAMES } from './consts'
+import { safetyCleanup } from './api'
 
 const { initPastDatesAsSent, sentReminderContent, sendObsidianLink } = getFeatureFlags()
 
@@ -144,6 +145,8 @@ const getObsidianReminders = () => {
 
 /** It checks md files and update cache of the reminders to handle new, edited, deleted reminders */
 export const watchLogic = () => {
+  safetyCleanup()
+
   const remindersFromObsidian = getObsidianReminders()
   const data = getData()
   const cachedReminders = data.reminders || []

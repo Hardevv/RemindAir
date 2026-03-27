@@ -1,39 +1,54 @@
-import { createServer } from 'http'
-import { getData, saveData } from './utils'
+import { getData, getPluginSettingsPath, saveData } from './utils'
 import { logger } from './logger'
+import { VAULT_NAMES } from './consts'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { PluginSettings } from './types'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-}
+/** It takes .json file from the plugin and checks if user requested cleanup */
+export const safetyCleanup = () => {
+  const data = getData()
+  const changedSettings: string[] = []
 
-export const startApi = (port: string) => {
-  const server = createServer((req, res) => {
-    if (req.method === 'OPTIONS') {
-      res.writeHead(204, corsHeaders)
-      res.end()
-      return
+  const pluginSettings = VAULT_NAMES.map(vaultName => {
+    try {
+      const pluginSettingsPath = getPluginSettingsPath(vaultName)
+
+      if (!existsSync(pluginSettingsPath)) {
+        logger.error(`Missing file: ${pluginSettingsPath}`)
+        return null
+      }
+
+      let pluginSettings: PluginSettings
+      try {
+        pluginSettings = JSON.parse(readFileSync(pluginSettingsPath, 'utf-8'))
+      } catch (error) {
+        logger.error(
+          `Failed to parse plugin settings. vault ${vaultName}: ${(error as Error).message}`
+        )
+        return null
+      }
+
+      if (!pluginSettings.lastSafetyCleanup) return
+      if (pluginSettings.lastSafetyCleanup < Date.now()) {
+        data.reminders = data.reminders.filter(r => r.vaultName !== vaultName)
+        pluginSettings.lastSafetyCleanup = null
+        changedSettings.push(vaultName)
+      }
+
+      return [vaultName, pluginSettings] as [string, PluginSettings]
+    } catch (error) {
+      logger.error(`Failed to clear reminders for vault ${vaultName}: ${(error as Error).message}`)
     }
-
-    if (req.method === 'DELETE' && req.url === '/reminders') {
-      const data = getData()
-      const count = data.reminders.length
-      data.reminders = []
-      saveData(data)
-
-      logger.info(`Deleted all reminders requested from Obsidian client (${count})`)
-
-      res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' })
-      res.end(JSON.stringify({ message: `Deleted ${count} reminders` }))
-      return
-    }
-
-    res.writeHead(404, { ...corsHeaders, 'Content-Type': 'application/json' })
-    res.end(JSON.stringify({ error: 'Not found' }))
   })
 
-  server.listen(port, () => {
-    logger.info(`API server listening on port ${port}`)
+  data.pluginSettings = Object.fromEntries(
+    pluginSettings.filter((entry): entry is [string, PluginSettings] => !!entry)
+  )
+
+  if (changedSettings.length === 0) return
+  saveData(data)
+  // Overwrite plugin settings inside the vault so lastSafetyCleanup is set to null and it won't trigger cleanup again on the next run
+  changedSettings.forEach(vaultName => {
+    writeFileSync(getPluginSettingsPath(vaultName), JSON.stringify(data.pluginSettings, null, 2))
   })
 }

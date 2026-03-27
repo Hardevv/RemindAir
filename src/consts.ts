@@ -1,3 +1,5 @@
+import type { Data } from './types'
+
 export const DEBOUNCE_DELAY = 1000 // milliseconds
 export const INTERVAL_DELAY = 5_000
 export const MAX_PAST_MS = 5 * 60 * 1000 // 5 minutes
@@ -19,3 +21,5 @@ export const VAULT_NAMES = process.env.VAULTS
 if (VAULT_NAMES.length === 0) throw new Error('VAULTS environment variable is not set or empty')
 
 export const REDIRECTION_PAGE_URL = 'https://hardevv.github.io/obsidian-notifier'
+
+export const INIT_DATA: Data = { reminders: [], pluginSettings: null }

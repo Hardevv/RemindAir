@@ -3,9 +3,7 @@ import { watch } from 'fs'
 import { initializeDataFile } from './utils'
 import { checkPastRemindersAndSend, markPastRemindersAsSent, watchLogic } from './core'
 import { DEBOUNCE_DELAY, INTERVAL_DELAY, VAULT_NAMES } from './consts'
-import { startApi } from './api'
 
-const API_PORT = process.env.API_PORT || '3000'
 const ROOT_PATH = process.env.ROOT_PATH
 
 if (!ROOT_PATH) throw new Error('ROOT_PATH environment variable is not set')
@@ -13,7 +11,6 @@ if (!ROOT_PATH) throw new Error('ROOT_PATH environment variable is not set')
 initializeDataFile()
 watchLogic() // Run once on start
 markPastRemindersAsSent()
-startApi(API_PORT)
 
 setInterval(async () => {
   await checkPastRemindersAndSend()
