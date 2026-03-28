@@ -1,8 +1,8 @@
-import { getData, getPluginSettingsPath, saveData } from './utils'
-import { logger } from './logger'
-import { VAULT_NAMES } from './consts'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
-import { PluginSettings } from './types'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { VAULT_NAMES } from '../consts'
+import { getData, getPluginSettingsPath, saveData } from '../utils'
+import { logger } from '../logger'
+import type { PluginSettings } from '../types'
 
 /** It takes .json file from the plugin and checks if user requested cleanup */
 export const safetyCleanup = () => {

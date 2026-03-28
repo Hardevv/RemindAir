@@ -11,7 +11,3 @@ export const logger = pino({
     },
   },
 })
-
-// logger.info("Start");
-// logger.warn({ userId: 123 }, "Cos podejrzanego");
-// logger.error(new Error("Boom"), "Blad");
