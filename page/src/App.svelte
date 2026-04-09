@@ -17,7 +17,7 @@
     } catch {
       isLoading = false
     }
-    const router = navaid()
+    const router = navaid(import.meta.env.BASE_URL)
 
     router.on('/', () => {
       currentPage = 'landing'

@@ -13,8 +13,10 @@ export const registerServiceWorker = async () => {
   if (!('serviceWorker' in navigator))
     throw new Error('Service workers are not supported in this browser.')
 
-  const swRegistration = await navigator.serviceWorker.register('sw.js', {
-    scope: '/',
+  const baseUrl = import.meta.env.BASE_URL
+
+  const swRegistration = await navigator.serviceWorker.register(`${baseUrl}sw.js`, {
+    scope: baseUrl,
   })
   await waitForSwReady()
 
