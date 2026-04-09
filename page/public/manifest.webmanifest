@@ -1,0 +1,22 @@
+{
+  "name": "RemindAir",
+  "short_name": "RemindAir",
+  "start_url": "/page",
+  "scope": "/page",
+  "display": "standalone",
+  "background_color": "#15141b",
+  "theme_color": "#15141b",
+  "description": "Simple PWA that receives push notifications from your local Node backend.",
+  "icons": [
+    {
+      "src": "/page/check.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "/page/check.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}

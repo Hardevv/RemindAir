@@ -8,8 +8,6 @@ export const handleDelete = (
   remindersFromObsidian: Reminder<Date>[],
   data: Data
 ) => {
-  if (remindersFromObsidian.length === 0) return
-
   const deletedReminders = cachedReminders
     .map(cachedReminder => {
       if (remindersFromObsidian.find(r => reminderExistInCache(cachedReminder, r))) return null

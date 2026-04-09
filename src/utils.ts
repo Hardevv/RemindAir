@@ -1,5 +1,6 @@
+import { type PushSubscription } from 'web-push'
 import path from 'path'
-import { writeFileSync, readFileSync } from 'fs'
+import { writeFileSync, readFileSync, existsSync } from 'fs'
 import type { Data, Reminder } from './types'
 import { logger } from './logger'
 import {
@@ -7,6 +8,7 @@ import {
   INIT_DATA,
   MD_LINK_REGEXP,
   OBSIDIAN_EMBED_REGEXP,
+  PUSH_SUBSCRIPTIONS_PATH,
   REMINDER_KEY,
   WIKILINK_REGEXP,
 } from './consts'
@@ -112,3 +114,12 @@ export const getPluginSettingsPath = (vaultName: string) =>
     'obsidian-notifier-plugin',
     'data.json'
   )
+
+export const writeSubscriptionsFile = (subscriptions: PushSubscription[]) => {
+  writeFileSync(PUSH_SUBSCRIPTIONS_PATH, JSON.stringify(subscriptions, null, 2))
+}
+
+export const initSubscriptionsFile = () => {
+  if (existsSync(PUSH_SUBSCRIPTIONS_PATH)) return
+  writeSubscriptionsFile([])
+}

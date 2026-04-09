@@ -15,6 +15,8 @@ export const WIKILINK_REGEXP = /\[\[([^|\]]+)(?:\|([^\]]+))?\]\]/g // [[Page|Ali
 export const CHECKBOX_REGEX = /(?:[-*]\s*\[[^\]]\]\s*)?/
 
 export const DATA_PATH = `${process.cwd()}/data.json`
+export const VAPID_KEYS_PATH = './vapid-keys.json'
+export const PUSH_SUBSCRIPTIONS_PATH = `${process.cwd()}/push-subscriptions.json`
 export const VAULT_NAMES = process.env.VAULTS
   ? process.env.VAULTS.split(',').map(v => v.trim())
   : []

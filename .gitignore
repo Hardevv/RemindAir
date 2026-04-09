@@ -2,3 +2,5 @@ node_modules
 dist
 data.json
 .env
+vapid-keys.json
+push-subscriptions.json

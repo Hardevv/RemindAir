@@ -27,3 +27,8 @@ export interface Data {
   reminders: Reminder<string>[]
   pluginSettings: Record<VaultName, PluginSettings> | null
 }
+
+export interface VapidKeys {
+  publicKey: string
+  privateKey: string
+}

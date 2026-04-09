@@ -5,6 +5,16 @@ This Backend stores it as `new Data()` then it stores it as UTC in `data.json` -
 
 ---
 
+PWA <> Backend without direct contact:
+
+- PWA never sends subscription directly to backend.
+- Generate subscription in PWA and copy/download JSON.
+- Put subscriptions in `push-subscriptions.json` as array.
+- Backend reads `push-subscriptions.json` and sends Web Push using VAPID keys from env.
+- Required env vars for push: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, optional `VAPID_SUBJECT`.
+
+---
+
 Multiple vault support:
 you have to store all of your vaults in a single location.
 For example `Documents/Obsidian` you can store there multiple vaults
@@ -32,3 +42,12 @@ Obsidian CLI is not headless so it will open all of your selected vaults
   - Privacy settings
     - reminder content toggle - you can choose whether to send your reminder text to your Discord channel
     - Obsidian link toggle - you can choose whether to send a link to your reminder
+- ### PWA SOLUTION
+  - There is an alternative way of getting notifications on your devices. Web application, you can install it on mobile and use on your PC. You have to give permission to the notifications and then configure keys. It will natively send reminders to your devices.
+
+---
+
+## Requirements
+
+- Obsidian version with CLI [Add version here]
+- make sure you have search enabled [put screen]

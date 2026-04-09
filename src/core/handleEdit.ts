@@ -2,6 +2,21 @@ import { logger } from '../logger'
 import type { Data, Reminder } from '../types'
 import { reminderExistInCache, saveData, validateDateReminder } from '../utils'
 
+const gedUndoDeletedReminderIndex = (
+  remindersFromObsidian: Reminder[],
+  cachedReminder: Reminder<string>,
+  editedReminder?: Reminder,
+  index: number = -1
+) => {
+  const undoDeleted = remindersFromObsidian.find(
+    rfo => reminderExistInCache(cachedReminder, rfo) && editedReminder === undefined
+  )
+
+  if (!undoDeleted) return -1
+  if (!validateDateReminder(undoDeleted) || index === -1) return -1
+  return index
+}
+
 export const handleEdit = (
   cachedReminders: Reminder<string>[],
   remindersFromObsidian: Reminder<Date>[],
@@ -9,7 +24,7 @@ export const handleEdit = (
 ) => {
   let hasEdits = false
 
-  cachedReminders.forEach(cachedReminder => {
+  cachedReminders.forEach((cachedReminder, index) => {
     const editedReminder = remindersFromObsidian.find(
       rfo =>
         reminderExistInCache(cachedReminder, rfo) &&
@@ -18,11 +33,19 @@ export const handleEdit = (
           rfo.dateTime.toISOString() !== cachedReminder.dateTime)
     )
 
-    if (editedReminder?.id === cachedReminder?.id) {
-      const index = cachedReminders.findIndex((r: Reminder<string>) =>
-        reminderExistInCache(r, editedReminder)
-      )
-      if (!validateDateReminder(editedReminder) || index === -1) return
+    // handle cmd+z
+    const undoDeletedIndex = gedUndoDeletedReminderIndex(
+      remindersFromObsidian,
+      cachedReminder,
+      editedReminder,
+      index
+    )
+    if (undoDeletedIndex !== -1) {
+      data.reminders[undoDeletedIndex].deleted = false
+      hasEdits = true
+    }
+
+    if (editedReminder && validateDateReminder(editedReminder)) {
       const hasDateChanged = editedReminder.dateTime.toISOString() !== cachedReminder.dateTime
       data.reminders[index] = {
         ...editedReminder,
