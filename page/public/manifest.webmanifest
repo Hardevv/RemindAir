@@ -1,8 +1,8 @@
 {
   "name": "RemindAir",
   "short_name": "RemindAir",
-  "start_url": "/page",
-  "scope": "/page",
+  "start_url": "/RemindAir/",
+  "scope": "/RemindAir/",
   "display": "standalone",
   "background_color": "#15141b",
   "theme_color": "#15141b",

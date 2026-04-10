@@ -18,6 +18,7 @@
     "typescript": "^6.0.2",
     "vite": "^7.1.5",
     "vite-plugin-pwa": "^1.2.0",
+    "workbox-precaching": "^7.4.0",
     "workbox-window": "^7.4.0"
   },
   "dependencies": {
