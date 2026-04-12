@@ -22,6 +22,4 @@ export const VAULT_NAMES = process.env.VAULTS
   : []
 if (VAULT_NAMES.length === 0) throw new Error('VAULTS environment variable is not set or empty')
 
-export const REDIRECTION_PAGE_URL = 'https://hardevv.github.io/obsidian-notifier'
-
 export const INIT_DATA: Data = { reminders: [], pluginSettings: null }

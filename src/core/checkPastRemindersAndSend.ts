@@ -1,7 +1,9 @@
 import { logger } from '../logger'
-import { getData, saveData, validateStringReminder } from '../utils'
+import { getData, getFeatureFlags, saveData, validateStringReminder } from '../utils'
 import { sentDiscordWebhook } from './sendDiscordWebhook'
 import { sendWebPush } from './sendWebPush'
+
+const { pwaNotifications, discordNotifications } = getFeatureFlags()
 
 export const checkPastRemindersAndSend = async () => {
   const now = new Date()
@@ -16,8 +18,11 @@ export const checkPastRemindersAndSend = async () => {
 
     if (diff >= 0 && !reminder.sent && reminder.id && !reminder.deleted) {
       try {
-        // TODO: create flag to turn off one method of sending if user doesn't want both
-        await Promise.all([sentDiscordWebhook(reminder), sendWebPush(reminder)])
+        const sendPromises = [
+          discordNotifications ? sentDiscordWebhook(reminder) : Promise.resolve(),
+          pwaNotifications ? sendWebPush(reminder) : Promise.resolve(),
+        ]
+        await Promise.all(sendPromises)
         data.reminders[index].sent = true
         saveData(data)
       } catch {

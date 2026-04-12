@@ -5,12 +5,13 @@ import {
   handleNewReminders,
   handleDelete,
   handleEdit,
-  safetyCleanup,
+  // safetyCleanup,
 } from './index'
 
 /** It checks md files and update cache of the reminders to handle new, edited, deleted reminders */
 export const watchLogic = () => {
-  safetyCleanup()
+  // TODO: fix
+  // safetyCleanup()
 
   const remindersFromObsidian = getObsidianReminders()
   const data = getData()

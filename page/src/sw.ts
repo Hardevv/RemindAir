@@ -97,6 +97,7 @@ sw.addEventListener('push', event => {
     typeof payload.body === 'string'
       ? payload.body
       : "New reminder, maybe it's something important? ;)"
+  // Should be a deeplink to Obsidian
   const url = typeof payload.url === 'string' ? payload.url : `${BASE}/`
 
   pushEvent.waitUntil(
@@ -105,8 +106,8 @@ sw.addEventListener('push', event => {
         await sw.registration.showNotification(title, {
           body,
           data: { url },
-          // icon: `${BASE}/check.jpg`,
-          // badge: `${BASE}/check.jpg`,
+          icon: `${BASE}/check.jpg`,
+          badge: `${BASE}/check.jpg`,
         })
       } catch (err) {
         console.error('showNotification failed:', err)
@@ -118,49 +119,11 @@ sw.addEventListener('push', event => {
           client.postMessage({ type: 'PUSH_RECEIVED', title, body, url })
         })
       } catch {
-        // intentionally ignore - notification is already shown
+        console.error('Failed to send message to clients about received push')
       }
     })()
   )
 })
-
-// sw.addEventListener('push', event => {
-//   const pushEvent = event as PushEvent
-//   let payload: Record<string, unknown> = {}
-
-//   try {
-//     const parsed = pushEvent.data ? pushEvent.data.json() : {}
-//     if (parsed && typeof parsed === 'object') payload = parsed as Record<string, unknown>
-//   } catch {
-//     payload = { body: pushEvent.data?.text() || 'New reminder' }
-//   }
-
-//   const title = typeof payload.title === 'string' ? payload.title : 'Reminder'
-//   const body =
-//     typeof payload.body === 'string'
-//       ? payload.body
-//       : "New reminder, maybe it's something important? ;)"
-//   // Should be a deeplink to Obsidian
-//   const url = typeof payload.url === 'string' ? payload.url : `${BASE}/`
-
-//   pushEvent.waitUntil(
-//     Promise.all([
-//       sw.registration.showNotification(title, {
-//         body,
-//         data: { url },
-//         icon: `${BASE}/check.jpg`,
-//         badge: `${BASE}/check.jpg`,
-//       }),
-//       sw.clients
-//         .matchAll({ type: 'window', includeUncontrolled: true })
-//         .then((clients: readonly WindowClient[]) => {
-//           clients.forEach((client: WindowClient) => {
-//             client.postMessage({ type: 'PUSH_RECEIVED', title, body, url })
-//           })
-//         }),
-//     ])
-//   )
-// })
 
 sw.addEventListener('notificationclick', event => {
   const notificationEvent = event as NotificationEvent

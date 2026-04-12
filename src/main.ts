@@ -1,19 +1,25 @@
 import 'dotenv/config'
 import { watch } from 'fs'
-import { initializeDataFile, initSubscriptionsFile } from './utils'
-import { checkPastRemindersAndSend, markPastRemindersAsSent, watchLogic } from './core'
+import { getFeatureFlags, initializeDataFile, initSubscriptionsFile } from './utils'
+import {
+  checkPastRemindersAndSend,
+  markPastRemindersAsSent,
+  watchLogic,
+  initVapidKeys,
+} from './core'
 import { DEBOUNCE_DELAY, INTERVAL_DELAY, VAULT_NAMES } from './consts'
-import { initVapidKeys } from './core/sendWebPush'
 
 const ROOT_PATH = process.env.ROOT_PATH
 
 if (!ROOT_PATH) throw new Error('ROOT_PATH environment variable is not set')
 
+const { pwaNotifications } = getFeatureFlags()
+
 initializeDataFile()
 initSubscriptionsFile()
 watchLogic() // Run once on start
 markPastRemindersAsSent()
-initVapidKeys()
+if (pwaNotifications) initVapidKeys()
 
 setInterval(async () => {
   await checkPastRemindersAndSend()

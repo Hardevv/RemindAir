@@ -1,4 +1,3 @@
-import { REDIRECTION_PAGE_URL } from '../consts'
 import { logger } from '../logger'
 import type { Reminder } from '../types'
 import { cleanReminderContent, getFeatureFlags, getObsidianAdvancedUriBlockLink } from '../utils'
@@ -17,7 +16,7 @@ export const sentDiscordWebhook = async ({
     ? `🔔 Reminder: ${cleanReminderContent(content)}`
     : '🔔 You have a reminder'
   const url = sendObsidianLink
-    ? `${REDIRECTION_PAGE_URL}?deeplink=${encodeURIComponent(obsidianLink)}`
+    ? `${process.env.PWA_URL}/redirection?deeplink=${encodeURIComponent(obsidianLink)}`
     : undefined
 
   try {

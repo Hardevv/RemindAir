@@ -29,7 +29,10 @@ export const safetyCleanup = () => {
       }
 
       if (!pluginSettings.lastSafetyCleanup) return
-      if (pluginSettings.lastSafetyCleanup < Date.now()) {
+      if (
+        pluginSettings.lastSafetyCleanup < Date.now() &&
+        pluginSettings.lastSafetyCleanup !== data.pluginSettings?.[vaultName]?.lastSafetyCleanup
+      ) {
         data.reminders = data.reminders.filter(r => r.vaultName !== vaultName)
         pluginSettings.lastSafetyCleanup = null
         changedSettings.push(vaultName)
