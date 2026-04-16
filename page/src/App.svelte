@@ -2,11 +2,9 @@
   import { onMount } from 'svelte'
   import navaid from 'navaid'
 
-  import NotificationsApp from './pages/NotificationsApp.svelte'
-  import LandingPage from './pages/LandingPage.svelte'
   import { appStore } from './store/store'
   import { registerServiceWorker } from './utils/core'
-  import RedirectionPage from './pages/RedirectionPage.svelte'
+  import { LandingPage, NotificationsPage, RedirectionPage } from './pages'
 
   let currentPage: string = 'home'
   let isLoading = true
@@ -36,7 +34,7 @@
 </script>
 
 {#if currentPage === 'notifications'}
-  <NotificationsApp bind:isLoading />
+  <NotificationsPage bind:isLoading />
 {:else if currentPage === 'landing'}
   <LandingPage />
 {:else if currentPage === 'redirection'}

@@ -9,11 +9,10 @@
     deeplink = searchParams.get('deeplink')
     reminderText = searchParams.get('reminderText') || 'Reminder'
 
-    if (deeplink) {
+    if (deeplink)
       setTimeout(() => {
         window.location.href = deeplink!
       }, 1000)
-    }
   })
 </script>
 

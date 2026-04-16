@@ -35,7 +35,6 @@ interface ServiceWorkerGlobalScope {
   skipWaiting(): void
   clients: Clients
   registration: ServiceWorkerRegistration
-  __WB_MANIFEST: unknown
 }
 
 declare const self: ServiceWorkerGlobalScope & {
@@ -46,7 +45,7 @@ const sw = self as unknown as ServiceWorkerGlobalScope
 
 precacheAndRoute(self.__WB_MANIFEST)
 
-const APP_CACHE = 'obsidian-notifier-v6'
+const APP_CACHE = 'obsidian-notifier-v7'
 const BASE = '/RemindAir'
 const APP_SHELL = [`${BASE}/`, `${BASE}/manifest.webmanifest`]
 
