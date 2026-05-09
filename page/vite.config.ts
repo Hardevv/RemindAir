@@ -11,14 +11,7 @@ export default defineConfig({
   plugins: [
     svelte(),
     VitePWA({
-      registerType: 'autoUpdate',
-      injectRegister: 'auto',
-      strategies: 'injectManifest',
-      srcDir: 'src',
-      filename: 'sw.ts',
-
-      includeAssets: ['check.jpg'],
-
+      registerType: 'manual',
       manifest: {
         name: 'RemindAir',
         short_name: 'RemindAir',
@@ -31,11 +24,6 @@ export default defineConfig({
           { src: 'check.jpg', sizes: '192x192', type: 'image/jpeg' },
           { src: 'check.jpg', sizes: '512x512', type: 'image/jpeg' },
         ],
-      },
-
-      injectManifest: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp,webmanifest}'],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
     }),
   ],

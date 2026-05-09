@@ -50,4 +50,5 @@ Obsidian CLI is not headless so it will open all of your selected vaults
 ## Requirements
 
 - Obsidian version with CLI [Add version here]
+  - Show where to turn on
 - make sure you have search enabled [put screen]
