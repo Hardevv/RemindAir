@@ -11,7 +11,9 @@ export default defineConfig({
   plugins: [
     svelte(),
     VitePWA({
-      registerType: 'manual',
+      devOptions: {
+        enabled: true,
+      },
       manifest: {
         name: 'RemindAir',
         short_name: 'RemindAir',
@@ -21,8 +23,8 @@ export default defineConfig({
         background_color: '#ffffff',
         theme_color: '#ffffff',
         icons: [
-          { src: 'check.jpg', sizes: '192x192', type: 'image/jpeg' },
-          { src: 'check.jpg', sizes: '512x512', type: 'image/jpeg' },
+          { src: 'icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+          { src: 'icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
         ],
       },
     }),
