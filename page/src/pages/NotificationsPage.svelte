@@ -44,6 +44,7 @@
   const enablePushNotifications = async () => {
     try {
       await requestNotificationPermission()
+      window.location.reload()
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error'
       console.error('Error enabling push notifications:', message)
